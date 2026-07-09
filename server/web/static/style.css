@@ -320,6 +320,10 @@ form label {
     gap: 10px;
 }
 
+#events-filter > .stacked-form-control > button[type="submit"] {
+    align-self: flex-end;
+}
+
 #urls {
     resize: vertical;
     max-height: 600px;

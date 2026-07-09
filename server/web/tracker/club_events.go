@@ -34,6 +34,7 @@ func (h *handler) TrackerClubEvents(w http.ResponseWriter, r *http.Request) {
 	}
 	onlyCAEvents := xquery.ParseBool(query, "only-ca-events", false)
 	eventCreator := query.Get("event-creator")
+	category := query.Get("category")
 
 	club, err := h.DB.GetClub(ctx, clubID)
 	if err != nil {
@@ -58,19 +59,17 @@ func (h *handler) TrackerClubEvents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to fetch events: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	events = h.filterEventsByCategory(events, category)
 
 	clubModel := models.NewClub(*club)
 	eventClubAvatarURL := models.ImageURL(club.Club.AvatarURL, 32)
 
 	trackerEvents := make([]models.TopEvent, len(events))
+	var totalAccepted, totalCheckIns int
 	for i, event := range events {
 		trackerEvents[i] = models.NewTopEvent(event, 32, eventClubAvatarURL)
-	}
-
-	totalAccepted, totalCheckIns, err := h.DB.GetClubTotalCheckInsAccepted(ctx, clubID, from, to, onlyCAEvents, eventCreator)
-	if err != nil {
-		http.Error(w, "Failed to fetch total check-ins and accepted members: "+err.Error(), http.StatusInternalServerError)
-		return
+		totalAccepted += event.Accepted
+		totalCheckIns += event.CheckIns
 	}
 
 	totalCheckInRate := models.CalcCheckInRate(totalAccepted, totalCheckIns)
@@ -85,6 +84,8 @@ func (h *handler) TrackerClubEvents(w http.ResponseWriter, r *http.Request) {
 			Quarters:             xtime.GetQuarters(),
 			EventCreators:        eventCreators,
 			SelectedEventCreator: eventCreator,
+			Categories:           categoryFilterOptions(),
+			SelectedCategory:     category,
 		},
 		Events:           trackerEvents,
 		TotalCheckIns:    totalCheckIns,

@@ -18,6 +18,8 @@ type EventsFilter struct {
 	Quarters             []xtime.Quarter
 	EventCreators        []models.Member
 	SelectedEventCreator string
+	Categories           []string
+	SelectedCategory     string
 }
 
 func (h *handler) GetQuarterFilters(w http.ResponseWriter, r *http.Request) {

@@ -88,7 +88,7 @@
 
 {{ define "events_filter" }}
     <form id="events-filter" hx-get="{{ .FilterURL }}" hx-params="not quarter" hx-push-url="true" hx-target="body">
-        <div class="inline-form-control">
+        <div class="stacked-form-control">
             <div class="inline-form-control">
                 <div id="events-filter-range" class="stacked-form-control">
                     <label class="inline-form-control" for="from">
@@ -100,11 +100,8 @@
                         <input type="date" id="to" name="to" hx-on:change="toChangeHandler()" {{ if not .To.IsZero }}value="{{ formatDate .To }}"{{ end }}>
                     </label>
                 </div>
+
                 <div class="stacked-form-control">
-                    <label class="form-control" for="only-ca-events">
-                        Only CA Events
-                        <input type="checkbox" id="only-ca-events" name="only-ca-events" {{ if .OnlyCAEvents }}checked{{ end }}>
-                    </label>
                     <label class="form-control" for="event-creator">
                         <select id="event-creator" name="event-creator">
                             <option value="">All Event Creators</option>
@@ -115,23 +112,40 @@
                             {{ end }}
                         </select>
                     </label>
+                    {{ if .Categories }}
+                        <label class="form-control" for="category">
+                            <select id="category" name="category">
+                                <option value="">All Event Types</option>
+                                {{ range $category := .Categories }}
+                                    <option value="{{ $category }}" {{ if eq $.SelectedCategory $category }}selected{{ end }}>
+                                        {{ $category }}
+                                    </option>
+                                {{ end }}
+                            </select>
+                        </label>
+                    {{ end }}
+                </div>
+
+                <div class="stacked-form-control">
+                    <label class="form-control" for="only-ca-events">
+                        Only CA Events
+                        <input type="checkbox" id="only-ca-events" name="only-ca-events" {{ if .OnlyCAEvents }}checked{{ end }}>
+                    </label>
+                    <label for="date-preset">
+                        <select id="date-preset" name="quarter" hx-get="/tracker/quarter-filters" hx-target="#events-filter-range" hx-swap="outerHTML" hx-select="#events-filter-range" hx-params="*"
+                                hx-push-url="false">
+                            <option value="">Select Quarter</option>
+                            {{ range $quarter := .Quarters }}
+                                <option value="{{ $quarter.Value }}">
+                                    {{ $quarter.Name }}
+                                </option>
+                            {{ end }}
+                        </select>
+                    </label>
                 </div>
             </div>
 
-            <div class="stacked-form-control">
-                <label for="date-preset">
-                    <select id="date-preset" name="quarter" hx-get="/tracker/quarter-filters" hx-target="#events-filter-range" hx-swap="outerHTML" hx-select="#events-filter-range" hx-params="*"
-                            hx-push-url="false">
-                        <option value="">Select Quarter</option>
-                        {{ range $quarter := .Quarters }}
-                            <option value="{{ $quarter.Value }}">
-                                {{ $quarter.Name }}
-                            </option>
-                        {{ end }}
-                    </select>
-                </label>
-                <button type="submit">Filter</button>
-            </div>
+            <button type="submit">Filter</button>
         </div>
     </form>
     <script>
